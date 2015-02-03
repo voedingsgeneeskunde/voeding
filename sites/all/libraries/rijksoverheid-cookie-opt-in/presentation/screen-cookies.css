@@ -1,0 +1,256 @@
+/*   *****************************************************
+ *
+ *   RIJKSOVERHEID.NL
+ *   Official website of the Government of the Netherlands
+ *
+ *   Presentation layer for screen and projection media
+ *   Cookiebar stylesheet for able web devices
+ *
+ *   This should comply with Dutch web guidelines v2 and
+ *   W3C CSS2.1 standards.
+ *   See: http://versie2.webrichtlijnen.nl/
+ *
+ *   location: /presentation/screen-cookies.css
+ *   version:  1.0
+ *   date:     25-09-2012
+ *
+ *   *****************************************************
+ */
+
+
+
+/*   *****************************************************
+ *
+ *   CODING CONVENTIONS
+ *
+ *   - indent property-value pairs using double spaces;
+ *   - place selectors, opening and closing brackets and
+ *     property-value pairs on their own, separate lines;
+ *   - use a consistent property order (as shown below);
+ *   - use shorthand for font, border, padding, margin
+ *     and background properties if possible;
+ *   - use full six digit hex codes for colours;
+ *   - work from general to specific (in order of
+ *     increasing specificity);
+ *   - avoid use of !important (preferably limited to
+ *     Internet Explorer stylesheets only!);
+ *   - use percentages to declare relative font sizes;
+ *   - omit units when declaring line-heights as not to
+ *     break inheritance of relative line-height.
+ *
+ */
+
+
+/*  MAIN LAYOUT */ 
+#cookiebar /* Main container for opt-in */
+{
+  width: 100%;
+  position: fixed;
+  border-top: 1px solid #535353; /* One pixel dark line for official government designs only */
+  top: 0;
+  left: 0;
+  z-index: 2500;
+}
+.ck-center /* Wrapper for centered government design */
+{
+  width: 960px;
+  margin: 0 auto;
+}
+.ck-main /* Main area of cookiebar */
+{
+  padding: 0 10px;
+  background: #E5F0DF url(images/cookiebar-shadow-repeater.png) repeat-y; /* Main lightgreen background with shadow */
+}
+.ck-footer /* Bottom of cookiebar, for presentation purposes */
+{
+  clear: both;
+  height: 10px;
+  background: url(images/cookiebar-shadow-alpha.png) no-repeat; /* Bottom shadow with alpha transparency */
+}
+.ck-content /* Content area, also provides hook for presentation */
+{
+  width: 892px;
+  padding: 0 24px 15px;
+  background: #E5F0DF url(images/cookiebar-stripe.png) repeat-x; /* Dashed stripe in top of the bar */
+}
+
+
+/* TYPO */
+#ck-attention
+{
+  margin: 0;
+  padding: 20px 0 10px;
+  font: 164%/1.2 Arial,Geneva,sans-serif;
+}
+#ck-intro
+{
+  width: 608px;
+  margin-bottom: 1em;
+  font-size: 107.07%;
+}
+.iphone.ios6 #ck-intro,
+.iphone.ios6 #ck-links li
+{
+  font-size: 0.7em !important;
+  font-size-adjust: none !important;
+}
+
+.answered #ck-intro
+{
+  width: 588px;
+}
+
+/* CHOICES ARE LINKS BUT LOOK LIKE BUTTONS */
+#ck-options div
+{
+  width: 284px;
+  display: block;
+  float: left;
+  margin-right: 20px;
+  background-color: #FFFFFF;
+  cursor: pointer;
+}
+.answered #ck-options
+{
+  width: 588px;
+}
+#ck-options div a
+{
+  display: block;
+  border: 2px solid #FFFFFF;
+  padding: 5px 10px 6px;
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 107.07%;
+  text-decoration: none;
+}
+#ck-options div.ck-accept a
+{
+  background-color: #458520; /* Base green. Be aware of colour contrast requirements! */
+}
+#ck-options div.ck-accept.option-hover a,
+#ck-options div.ck-accept a:hover,
+#ck-options div.ck-accept a:focus
+{
+  background-color: #529D26;  /* Hover green */
+}
+#ck-options div.ck-deny a
+{
+  background-color: #C85019;  /* Base orange */
+}
+#ck-options div.ck-deny.option-hover a,
+#ck-options div.ck-deny a:hover,
+#ck-options div.ck-deny a:focus
+{
+  background-color: #F6631F;  /* Hover orange */
+}
+#ck-options div ul
+{
+  margin: 0;
+  padding: 0 10px;
+}
+#ck-options div li
+{
+  padding: 6px 0 0 12px;
+  background: url(images/cookiebar-bullets.png) 2px 1.1em no-repeat; /* Colored bullets in explanation list */
+  line-height: 1.4;
+}
+#ck-options .ck-deny li
+{
+  background-position: -498px 1.1em;
+}
+#ck-options div li:last-child
+{
+  padding-bottom: 10px;
+}
+* + html #ck-options div li
+{
+  padding: 6px 0 4px 12px;
+}
+
+
+/* LINK LISTS */
+#ck-links p
+{
+  margin: 0;
+  padding: 4px 30px 8px 0;
+  background: url(images/cookiebar-icons-xl.png) 100% 7px no-repeat; /* Down arrow for linklist dropdown */
+  color: #154273;
+  font-size: 118.18%;
+  cursor: default;
+}
+.hover #ck-links p
+{
+  background-image: none;
+}
+#ck-links,
+#ck-links ul
+{
+  font-size: 1em;
+}
+#ck-links li
+{
+  margin: 6px 0;
+  padding: 0;
+  font-size: 1.1818em;
+  background-image: none;  
+}
+#ck-links a
+{
+  display: block;
+  padding: 0 0 5px 30px;
+  background: url(images/cookiebar-icons-xl.png) 0 0 no-repeat; /* Arrows in linklist */
+  text-decoration: none;
+  font-size: 1em;
+}
+.answered #ck-options a
+{
+  display: block;
+  float: left;
+  padding: 0 0 5px 20px;
+  color: #154273;
+  font-size: 1.1818em;
+  background: url(images/cookiebar-icons-xl.png) -500px 0 no-repeat; /* Close icon */
+  text-decoration: none;
+}
+.answered #ck-options a:hover,
+.answered #ck-options a:focus,
+#ck-links a:hover,
+#ck-links a:focus
+{
+  color: #0162CD;
+  text-decoration: underline;
+}
+
+.answered .ck-content
+{
+  position: relative;
+}
+.answered #ck-links
+{
+  width: 284px;
+  position: absolute;
+  bottom: 0.4em;
+  left: 632px;
+}
+#ck-links:after,
+.answered #ck-options:after
+{
+  content: " ";
+  display: block;
+  height: 0;
+  clear: left;
+  visibility: hidden;
+}
+
+
+/* IE Fixes */
+* html #cookiebar
+{
+  position: absolute;
+  height: 1%;
+}
+* html #cookiebar .ck-footer
+{
+  background-image: none;
+}

@@ -1,0 +1,12 @@
+name = iDEAL Donation Form
+description = "Allows users to make simple transactions through a stand-alone donation form."
+dependencies[] = ideal
+core = 7.x
+package = E-Commerce
+configure = admin/config/services/idealdonation
+; Information added by Drupal.org packaging script on 2014-02-27
+version = "7.x-2.7"
+core = "7.x"
+project = "ideal"
+datestamp = "1393511006"
+

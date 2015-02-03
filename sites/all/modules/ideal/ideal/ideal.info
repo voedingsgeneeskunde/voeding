@@ -1,0 +1,12 @@
+name = iDEAL API
+description = "Provides a framework to make transactions between Dutch bank accounts using the iDEAL bank transfer system."
+core = 7.x
+package = E-Commerce
+dependencies[] = entity
+files[] = includes/ideal.transaction.inc
+; Information added by Drupal.org packaging script on 2014-02-27
+version = "7.x-2.7"
+core = "7.x"
+project = "ideal"
+datestamp = "1393511006"
+

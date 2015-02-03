@@ -1,0 +1,337 @@
+<?php
+
+/**
+ * @file
+ * Installation and uninstallation functions.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function ideal_schema() {
+  $schema['ideal_transaction'] = array(
+    'fields' => array(
+      'itid' => array(
+        'type' => 'serial',
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that initiated this transaction.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'transaction_id' => array(
+        'type' => 'varchar',
+        'length' => '16',
+        'not null' => TRUE,
+      ),
+      'imid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'purchase_id' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 35,
+      ),
+      'city' => array(
+        'type' => 'varchar',
+        'length' => 24,
+      ),
+      'account_number' => array(
+        'type' => 'varchar',
+        'length' => 10,
+      ),
+      'amount' => array(
+        'type' => 'int',
+        'size' => 'big',
+      ),
+      'status' => array(
+        'type' => 'varchar',
+        'length' => '9',
+      ),
+      'created' => array(
+        'type' => 'int',
+      ),
+      'updated' => array(
+        'type' => 'int',
+      ),
+      'expired' => array(
+        'type' => 'int',
+      ),
+      'entrance_code' => array(
+        'type' => 'varchar',
+        'length' => 40,
+      ),
+      'return_callback' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'issuer_authentication_url' => array(
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+    ),
+    'primary key' => array('itid'),
+  );
+  $schema['ideal_merchant'] = array(
+    'fields' => array(
+      'imid' => array(
+        'type' => 'serial',
+      ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'merchant_id' => array(
+        'type' => 'varchar',
+        'length' => 9,
+        'not null' => TRUE,
+      ),
+      'sub_id' => array(
+        'type' => 'int',
+        'length' => 'medium',
+        'default' => 0,
+      ),
+      'private_key_path' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'private_key_password' => array(
+        'type' => 'varchar',
+        'length' => 24,
+        'not null' => TRUE,
+      ),
+      'public_certificate_path' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'iaid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+      ),
+      'locked' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('imid'),
+  );
+  $schema['ideal_acquirer'] = array(
+    'fields' => array(
+      'iaid' => array(
+        'type' => 'serial',
+      ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'public_certificate_path' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'url_live' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'url_test' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'locked' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('iaid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function ideal_install() {
+  global $_ideal_install;
+
+  module_load_include('module', 'ideal');
+
+  // Globally set iDEAL is being installed, so ideal_enable() can import
+  // predefined configurations.
+  $_ideal_install = TRUE;
+}
+
+/**
+ * Implements hook_enable().
+ */
+function ideal_enable() {
+  global $_ideal_install;
+
+  // Import predefined merchants and acquirers if iDEAL has just been
+  // installed. This is a workaround, because drupal_write_record() requires
+  // ideal_schema(), which is not being cached during hook_install().
+  if ($_ideal_install) {
+    foreach (ideal_predefined_acquirers() as $acquirer) {
+      entity_save('ideal_acquirer', $acquirer);
+    }
+    foreach (ideal_predefined_merchants() as $merchant) {
+      entity_save('ideal_merchant', $merchant);
+    }
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ideal_uninstall() {
+  db_query("DELETE FROM {variable} WHERE name LIKE 'ideal_%'");
+  cache_clear_all('variables', 'cache');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function ideal_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'install') {
+    // Confirm Drupal can make HTTP requests. Only do this during installation,
+    // because Drupal core checks for this requirement during runtime already.
+    if (variable_get('drupal_http_request_fails', TRUE) && !system_check_http_request()) {
+      $requirements['ideal_http request'] = array(
+        'title' => t('HTTP request'),
+        'value' => t('Fails'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('iDEAL API needs to be able to make HTTP requests to other websites in order to process transactions.'),
+      );
+    }
+  }
+
+  // Check for required PHP extensions.
+  foreach (array('OpenSSL', 'SimpleXML') as $extension) {
+    $loaded = extension_loaded($extension);
+    $requirements["ideal_extension_$extension"] = array(
+      'title' => $extension,
+      'value' => $loaded ? t('Loaded') : t('Not loaded'),
+      'severity' => $loaded ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * Update public_certificate_path column name.
+ */
+function ideal_update_7200() {
+  if (db_field_exists('ideal_merchant', 'private_certificate_path')) {
+    db_change_field('ideal_merchant', 'private_certificate_path', 'public_certificate_path', array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+    ));
+  }
+}
+
+/**
+ * Remove incompletely configured predefined acquirers from the database.
+ */
+function ideal_update_7201() {
+  // Find all acquirers that are not iDEAL Simulator (IAID 1). We need this
+  // check, because they only existed in 7.x-2.0-beta1 and before.
+  $query = new EntityFieldQuery();
+  $acquirers = $query->entityCondition('entity_type', 'ideal_acquirer')
+    ->propertyCondition('iaid', 1, '<>')
+    ->propertyCondition('locked', TRUE)
+    ->execute();
+  if ($acquirers) {
+    $iaids = array_keys($acquirers['ideal_acquirer']);
+    // Delete the acquirers.
+    db_delete('ideal_acquirer')
+      ->condition('iaid', $iaids)
+      ->execute();
+    // Update existing merchants to use iDEAL Simulator instead to prevent
+    // errors.
+    db_update('ideal_merchant')
+      ->condition('iaid', $iaids)
+      ->fields(array(
+        'iaid' => 1,
+      ))
+      ->execute();
+  }
+}
+
+/**
+ * Return the predefined merchants.
+ *
+ * @return array
+ *   An array with iDEALMerchant objects.
+ */
+function ideal_predefined_merchants() {
+  module_load_include('inc', 'ideal', '/includes/ideal.transaction');
+  $path = drupal_get_path('module', 'ideal');
+  $acquirers = ideal_predefined_acquirers();
+
+  return array(
+    new iDEALMerchant(array(
+      'acquirer' => $acquirers[0],
+      'locked' => TRUE,
+      'merchant_id' => 123456789,
+      'public_certificate_path' => './' . $path . '/encryption/ideal.idealsimulatorpaz.merchant.public.cer',
+      'private_key_password' => 'Password',
+      'private_key_path' => './' . $path . '/encryption/ideal.idealsimulatorpaz.merchant.private.key',
+      'sub_id' => 0,
+      'title' => 'iDEAL Simulator Professional/Advanced/Zelfbouw',
+    )),
+  );
+}
+
+/**
+ * Return the predefined acquirers.
+ *
+ * @return array
+ *   An array with iDEALAcquirer objects.
+ */
+function ideal_predefined_acquirers() {
+  static $acquirers = NULL;
+
+  if (is_null($acquirers)) {
+    module_load_include('inc', 'ideal', '/includes/ideal.transaction');
+    $path = drupal_get_path('module', 'ideal');
+    $acquirers = array(
+      new iDEALAcquirer(array(
+        'locked' => TRUE,
+        'name' => 'idealsimulatorpaz',
+        'public_certificate_path' => './' . $path . '/encryption/ideal.public.idealsimulatorpaz.cer',
+        'public_certificate_path' => './' . $path . '/encryption/ideal.idealsimulatorpaz.acquirer.public.cer',
+        'title' => 'iDEAL Simulator Professional/Advanced/Zelfbouw',
+        'url_live' => 'https://www.ideal-simulator.nl:443/professional/',
+        'url_test' => 'https://www.ideal-simulator.nl:443/professional/',
+      )),
+    );
+  }
+
+  return $acquirers;
+}

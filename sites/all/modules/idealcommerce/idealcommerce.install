@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Installation and uninstallation functions.
+ */
+
+/**
+ * Implements hook_schema_alter().
+ */
+function idealcommerce_schema_alter(array &$schema) {
+  $schema['ideal_transaction']['fields']['commerce_payment_transaction_id'] = array(
+    'description' => 'The {commerce_payment_transaction}.transaction_id of the {commerce_payment_transaction} that corresponds to this {ideal_transaction}.', 
+    'type' => 'int',
+    'not null' => TRUE,
+    'unsigned' => TRUE,
+    'default' => 0,
+    'initial' => 0,
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function idealcommerce_install() {
+  $schema = array();
+  idealcommerce_schema_alter($schema);
+
+  db_add_field('ideal_transaction', 'commerce_payment_transaction_id', $schema['ideal_transaction']['fields']['commerce_payment_transaction_id']);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function idealcommerce_uninstall() {
+  db_drop_field('ideal_transaction', 'commerce_payment_transaction_id');
+}

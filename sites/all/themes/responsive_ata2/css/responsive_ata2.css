@@ -1,0 +1,242 @@
+/* --- Algemeen vormgeving --- */
+body {
+	margin-left: 0;
+	margin-right: 0;
+	margin-top: 0;
+}
+
+#referenties {
+	font-family: Ubuntu, "Open Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+	font-size: 75%;
+}
+
+#figuren {
+	margin-bottom: 12px;
+	padding: 8px;
+	background-color: #e7e9e3;
+	text-align: center;
+	-khtml-border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+}
+
+#onderkop {
+	font-weight: 400;
+	color: #a9cb61;
+	margin-bottom: 0.75em;
+	letter-spacing: 0.1em;
+}
+.description {
+	color: #BFB682;
+	font-size: 0.875em;
+}
+
+
+#main-wrapper {
+  background: #F3F5F2;
+  background-image: url(../images/bg-verloop.png);
+  background-repeat: repeat-y;
+ background-position: center center;
+} 
+
+/* --- panes --- */
+
+
+/* --- Bedrijvenmenu --- */
+
+#bedrijfsmenu {
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	border-radius: 8px;
+	/*padding-left: 0.25em;
+	padding-bottom: 0.1em;
+	padding-right: 0.25em;
+	padding-top: 0.1em;
+	margin-bottom: 0.25em;*/
+	background-color: #f3f5f2;
+}
+#bedrijfsmenu ul {
+	padding: 0;
+}
+
+#bedrijfsmenu li {
+	list-style: none;
+	display: inline;
+}
+#bedrijfsmenu ul li a{
+	padding: 0;
+}
+#bedrijfsmenu ul li a:hover{
+background-color: #fff;
+}
+#bedrijfsmenu ul li a:active{
+background-color: #fff;
+}
+
+
+#bedrijfsmenu a:active {
+	background-color: #fff;
+	color: #6a6763;
+}
+.pane-menu-menu-bedrijfsmenu {
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	border-radius: 8px;
+	/*padding-left: 0.25em;
+	padding-bottom: 0.1em;
+	padding-right: 0.25em;
+	padding-top: 0.1em;
+	margin-bottom: 0.25em;*/
+	background-color: #f3f5f2;
+}
+.pane-menu-menu-bedrijfsmenu li {
+	list-style: none;
+	display: inline;
+}
+.pane-menu-menu-bedrijfsmenu a:active {
+	background-color: #fff;
+	color: #6a6763;
+}
+.pane-menu-menu-bedrijfsmenu a:hover {
+	background-color: #fff;
+	color: #6a6763;
+}
+
+
+
+/* --- Lijst bedrijven op BC pagina --- */
+.bedrijven-partner-atabc2013 ul {
+	display: inline;
+	background-color: #fff;
+	margin-left:auto;
+	margin-right: auto;
+	
+}
+.bedrijven-partner-atabc2013 li {
+	display: inline;
+	list-style: none;
+	float: left;
+	text-align: center;
+}
+
+
+
+
+/* --- Bedrijfsprofielen grid --- */
+
+#bedrijfsprofielen_grid tr td, tr th {
+	padding: 2px;
+}
+
+/* --- Slideshow responsive hack --- */
+.views-slideshow-cycle-main-frame-row, .views-slideshow-cycle-main-frame {
+  width: 100% !important;
+}
+
+
+
+
+
+
+
+
+
+/* Hide "Add New Comment" text if necessary. */
+.support-hide-post-comment h2.comment-form {
+  display: none;
+}
+
+
+
+/* --- Bedrijfsmediapagina --- */ 
+
+.field-name-field-pdf-s img {
+	/*float:left;*/
+	border: 1px solid #6a6763;
+}
+.pdfpreview-image-wrapper {
+	text-align: center;
+	background-color: #e7e9e3;
+	padding: 1em;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+.pdfpreview-description {
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+}
+
+.media-youtube-video {
+	text-align: center;
+}
+.pdfpreview  {
+	/*border-bottom: #e7e9e3 solid 1px;*/
+	margin-bottom: 0.5em;
+}
+
+/* --- Tijdschriften paneeltje --- */
+.view-id-tijdschrift_edities tr td, tr th {
+	border: 0;
+	text-align: center;
+}
+
+/* Tekst */
+.block-block-system {
+	font-size: 0.75em;
+}
+
+/* --- ui --- */
+
+#modal-content .fieldset-wrapper {
+	margin-top: 3.5em;
+}
+
+/* -- bedrijfsmedia -- */
+.bedrijfsmedia_afbeelding {
+	max-width: 300px;
+}
+.bedrijfsmedia_afbeelding img{
+	/*max-width: 960px;*/
+}
+
+.bedrijfsmedia_film {
+	overflow:hidden;
+  padding-bottom:56.25%;
+  position:relative;
+  height:0;
+}
+.bedrijfsmedia_film iframe{
+	left:0;
+  top:0;
+  height:100%;
+  width:100%;
+  position:absolute;
+}
+
+.media-youtube-video {
+	overflow:hidden;
+  padding-bottom:56.25%;
+  position:relative;
+  height:0;
+  min-width: 300px;
+}
+.media-youtube-video iframe {
+	left:0;
+  top:0;
+  height:100%;
+  width:100%;
+  position:absolute;
+}
+
+/* --- Admin --- */
+div.admin-panel .body {
+    font-size: 0.875em;
+    line-height: 1.5em;
+    padding: 0 4px 2px 8px;
+}
+/* --- Loged blokje boven --- */
+#block-logintoboggan-logintoboggan-logged-in {
+	color: #ffcfcfc;
+}

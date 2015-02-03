@@ -1,0 +1,12 @@
+name = iDEAL For Drupal Commerce
+description = Makes iDEAL available as a Drupal Commerce payment method.
+core = 7.x
+package = E-Commerce
+dependencies[] = ideal (2.x)
+dependencies[] = commerce_payment
+; Information added by Drupal.org packaging script on 2013-12-12
+version = "7.x-1.5"
+core = "7.x"
+project = "idealcommerce"
+datestamp = "1386859413"
+

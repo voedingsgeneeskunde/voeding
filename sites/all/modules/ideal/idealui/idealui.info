@@ -1,0 +1,12 @@
+name = iDEAL Administration Interface
+description = "Allows users to configure iDEAL API and administer transactions."
+dependencies[] = ideal
+core = 7.x
+package = E-Commerce
+configure = admin/config/services/ideal
+; Information added by Drupal.org packaging script on 2014-02-27
+version = "7.x-2.7"
+core = "7.x"
+project = "ideal"
+datestamp = "1393511006"
+

@@ -1,0 +1,576 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations and shared functions.
+ */
+
+/**
+ * An open (pending) transaction.
+ */
+define('IDEAL_STATUS_OPEN', 'Open');
+
+/**
+ * A successfully completed transaction.
+ */
+define('IDEAL_STATUS_SUCCESS', 'Success');
+
+/**
+ * A cancelled transaction.
+ */
+define('IDEAL_STATUS_CANCELLED', 'Cancelled');
+
+/**
+ * An expired transaction.
+ */
+define('IDEAL_STATUS_EXPIRED', 'Expired');
+
+/**
+ * A failed transaction.
+ */
+define('IDEAL_STATUS_FAILURE', 'Failure');
+
+/**
+ * A transaction for which no definitive status was returned by the acquirer
+ * within 24 hours. This status is not part of the iDEAL specification.
+ */
+define('IDEAL_STATUS_UNKNOWN', 'Unknown');
+
+/**
+ * The maximum transaction amount.
+ */
+define('IDEAL_MAXIMUM_AMOUNT', 999999999999);
+
+/**
+ * Implements hook_menu().
+ */
+function ideal_menu() {
+  $items['ideal/return'] = array(
+    'page callback' => 'ideal_transaction_return',
+    // Access is checked in the page callback.
+    'access callback' => TRUE,
+    'file' => 'ideal.transaction.inc',
+    'file path' => drupal_get_path('module', 'ideal') . '/includes',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function ideal_element_info() {
+  $elements['ideal_transaction_amount'] = array(
+    '#input' => TRUE,
+    '#process' => array('ideal_form_process_transaction_amount'),
+    // The transaction amount in cents.
+    '#amount' => 0,
+    // The minimum transaction amount in cents that needs to be entered.
+    '#minimum_amount' => 0,
+  );
+
+  return $elements;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function ideal_theme($existing, $type, $theme, $path) {
+  return array(
+    'ideal_form_transaction' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function ideal_cron() {
+  ideal_check_open_transactions();
+}
+
+/**
+ * Implements hook_mail().
+ *
+ * This isn't a hook, but a drupal_mail() 'callback' (it's not even worth
+ * the name "callback", but that's a different story.)
+ */
+function ideal_mail($key, &$message, $params) {
+  if ($key == 'status_unknown') {
+    $site_name = variable_get('site_name', NULL);
+    $message['subject'] = t('Unkown iDEAL transaction status at @site_name', array(
+      '@site_name' => $site_name,
+    ));
+    $message['body'][] = t("The status of the following iDEAL transactions at @site_name cannot be retrieved. Check their definitive status with your bank.", array(
+      '@site_name' => $site_name,
+    ));
+    foreach ($params['transactions'] as $transaction) {
+      $message['body'][] = '€' . ideal_cents_to_human_readable($transaction->amount) . "\t\tDescription: " . $transaction->description;
+    }
+  }
+}
+
+/**
+ * Implements hook_watchdog().
+ */
+function ideal_watchdog(array $log_entry) {
+  // If debugging mode is enabled, display all iDEAL log entries on the screen.
+  if ($log_entry['type'] == 'iDEAL' && variable_get('ideal_debug', TRUE)) {
+    drupal_set_message(t($log_entry['message'], $log_entry['variables'] ? $log_entry['variables'] : array()), 'error');
+  }
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function ideal_entity_info() {
+  $entities['ideal_transaction'] = array(
+    'label' => t('iDEAL transaction'),
+    'controller class' => 'iDEALTransactionEntityController',
+    'entity class' => 'iDEALTransaction',
+    'module' => 'ideal',
+    'base table' => 'ideal_transaction',
+    'entity keys' => array(
+      'id' => 'itid',
+      'label' => 'description',
+    ),
+    // @todo Enable static cache once http://drupal.org/node/1273756 is fixed.
+    'static cache' => FALSE,
+  );
+  $entities['ideal_merchant'] = array(
+    'label' => t('iDEAL merchant'),
+    'controller class' => 'iDEALMerchantEntityController',
+    'entity class' => 'iDEALMerchant',
+    'module' => 'ideal',
+    'base table' => 'ideal_merchant',
+    'entity keys' => array(
+      'id' => 'imid',
+      'label' => 'title',
+    ),
+    // @todo Enable static cache once http://drupal.org/node/1273756 is fixed.
+    'static cache' => FALSE,
+  );
+  $entities['ideal_acquirer'] = array(
+    'label' => t('iDEAL acquirer'),
+    'controller class' => 'EntityAPIController',
+    'entity class' => 'iDEALAcquirer',
+    'module' => 'ideal',
+    'base table' => 'ideal_acquirer',
+    'entity keys' => array(
+      'id' => 'iaid',
+      'label' => 'title',
+    ),
+    // @todo Enable static cache once http://drupal.org/node/1273756 is fixed.
+    'static cache' => FALSE,
+  );
+
+  return $entities;
+}
+
+/**
+ * Implements hook_entity_property_info().
+ */
+function ideal_entity_property_info() {
+  $properties['ideal_transaction']['properties']['account_numbert'] = array(
+    'label' => t("The payer's bank account number"),
+    'type' => 'decimal',
+  );
+  // iDEAL transactions.
+  $properties['ideal_transaction']['properties']['account_number'] = array(
+    'label' => t("The payer's bank account number"),
+    'type' => 'decimal',
+  );
+  $properties['ideal_transaction']['properties']['amount'] = array(
+    'label' => t('Transaction amount'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_transaction']['properties']['city'] = array(
+    'label' => t("The payer's place of residence"),
+    'type' => 'text',
+  );
+  $properties['ideal_transaction']['properties']['created'] = array(
+    'label' => t('Creation date and time'),
+    'type' => 'date',
+  );
+  $properties['ideal_transaction']['properties']['description'] = array(
+    'label' => t('Description'),
+    'type' => 'text',
+  );
+  $properties['ideal_transaction']['properties']['entrance_code'] = array(
+    'label' => t('Entrance code'),
+    'type' => 'text',
+  );
+  $properties['ideal_transaction']['properties']['expired'] = array(
+    'label' => t('Expiration date and time'),
+    'type' => 'date',
+  );
+  $properties['ideal_transaction']['properties']['imid'] = array(
+    'label' => t("The merchant's IMID."),
+    'description' => t('Temporary value. Only used for storage purposes.'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_transaction']['properties']['issuer_authentication_url'] = array(
+    'label' => t('Issuer authentication URL'),
+    'type' => 'uri',
+  );
+  $properties['ideal_transaction']['properties']['itid'] = array(
+    'label' => 'ITID',
+    'description' => t('The unique iDEAL transaction ID on this website.'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_transaction']['properties']['merchant'] = array(
+    'label' => t('The merchant used for this transaction'),
+    'type' => 'ideal_merchant',
+  );
+  $properties['ideal_transaction']['properties']['name'] = array(
+    'label' => t("The payer's name"),
+    'type' => 'text',
+  );
+  $properties['ideal_transaction']['properties']['purchase_id'] = array(
+    'label' => t('Purchase ID'),
+    'type' => 'text',
+  );
+  $properties['ideal_transaction']['properties']['return_callback'] = array(
+    'label' => t('Return callback'),
+    'type' => 'text',
+  );
+  $properties['ideal_transaction']['properties']['status'] = array(
+    'label' => t("The transaction's status"),
+    'description' => t('Either "!success", "!cancelled", "!expired", "!failure", "!open", or "!unknown".', array(
+      '!success' => IDEAL_STATUS_SUCCESS,
+      '!cancelled' => IDEAL_STATUS_CANCELLED,
+      '!expired' => IDEAL_STATUS_EXPIRED,
+      '!failure' => IDEAL_STATUS_FAILURE,
+      '!open' => IDEAL_STATUS_OPEN,
+      '!unknown' => IDEAL_STATUS_UNKNOWN,
+    )),
+    'type' => 'text',
+  );
+  $properties['ideal_transaction']['properties']['transaction_id'] = array(
+    'label' => t('Transaction ID'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_transaction']['properties']['uid'] = array(
+    'label' => 'UID',
+    'description' => t('The ID of the user who initiated this transaction.'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_transaction']['properties']['updated'] = array(
+    'label' => t('Last updated date and time'),
+    'type' => 'date',
+  );
+
+  // iDEAL merchants.
+  $properties['ideal_merchant']['properties']['acquirer'] = array(
+    'label' => t("The acquirer used by this merchant"),
+    'type' => 'ideal_acquirer',
+  );
+  $properties['ideal_merchant']['properties']['iaid'] = array(
+    'label' => t("The acquirer's IAID"),
+    'description' => t('Temporary value. Only used for storage purposes.'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_merchant']['properties']['imid'] = array(
+    'label' => 'IMID',
+    'description' => t('The unique iDEAL merchant ID on this website.'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_merchant']['properties']['locked'] = array(
+    'label' => t('Locked state'),
+    'description' => t('Whether this merchant can be edited or not.'),
+    'type' => 'boolean',
+  );
+  $properties['ideal_merchant']['properties']['merchant_id'] = array(
+    'label' => t('Merchant ID'),
+    'description' => t('The merchant ID as provided by the bank.'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_merchant']['properties']['public_certificate_path'] = array(
+    'label' => t('Public certificate path'),
+    'description' => t('The path to the public certificate file.'),
+    'type' => 'text',
+  );
+  $properties['ideal_merchant']['properties']['private_key_password'] = array(
+    'label' => t('Private key password'),
+    'description' => t('The plain text password of the private key file.'),
+    'type' => 'text',
+  );
+  $properties['ideal_merchant']['properties']['private_key_path'] = array(
+    'label' => t('Private key path'),
+    'description' => t('The path to the private key file.'),
+    'type' => 'text',
+  );
+  $properties['ideal_merchant']['properties']['sub_id'] = array(
+    'label' => t('Sub ID'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_merchant']['properties']['title'] = array(
+    'label' => t('Title'),
+    'type' => 'date',
+  );
+
+  // iDEAL acquirers.
+  $properties['ideal_acquirer']['properties']['iaid'] = array(
+    'label' => 'IAID',
+    'description' => t('The unique iDEAL acquirer ID on this website.'),
+    'type' => 'decimal',
+  );
+  $properties['ideal_acquirer']['properties']['locked'] = array(
+    'label' => t('Locked state'),
+    'description' => t('Whether this acquirer can be edited or not.'),
+    'type' => 'boolean',
+  );
+  $properties['ideal_acquirer']['properties']['public_certificate_path'] = array(
+    'label' => t('Public certificate path'),
+    'type' => 'text',
+  );
+  $properties['ideal_acquirer']['properties']['title'] = array(
+    'label' => t('Title'),
+    'type' => 'text',
+  );
+  $properties['ideal_acquirer']['properties']['url_live'] = array(
+    'label' => t('URL to live server'),
+    'type' => 'uri',
+  );
+  $properties['ideal_acquirer']['properties']['url_test'] = array(
+    'label' => t('URL to testing server'),
+    'type' => 'uri',
+  );
+
+  return $properties;
+}
+
+
+/**
+ * Convert a period in seconds to an ISO 8601 formatted period.
+ *
+ * @param $seconds mixed
+ *   The period in seconds as an integer or a string.
+ *
+ * @return string
+ */
+function ideal_secondstoiso8601($seconds) {
+  return 'PT' . $seconds . 'S';
+}
+
+/**
+ * Convert an ISO 8601 formatted period to a period in seconds.
+ *
+ * @param $period string
+ *   An ISO 8601 formatted period starting with 'P'.
+ *
+ * @return string
+ */
+function ideal_iso8601toseconds($period) {
+  $datetime = new DateTime('@0');
+  $datetime->add(new DateInterval($period));
+
+  return $datetime->format('U');
+}
+
+/**
+ * Return the merchant return URL
+ *
+ * @return string
+ */
+function ideal_merchant_return_url() {
+  global $base_root;
+
+  return $base_root . url('ideal/return');
+}
+
+/**
+ * Check the status of transactions that are still open.
+ */
+function ideal_check_open_transactions() {
+  global $language;
+
+  module_load_include('inc', 'ideal', '/includes/ideal.transaction');
+
+  $time = time();
+
+  // Update the status for open transactions that expired more than 24 hours
+  // ago.
+  $query = new EntityFieldQuery();
+  $entities = $query->entityCondition('entity_type', 'ideal_transaction')
+    ->propertyCondition('status', IDEAL_STATUS_OPEN)
+    ->propertyCondition('expired', $time - 86400, '<')
+    ->execute();
+  if ($entities) {
+    $ids = array_keys($entities['ideal_transaction']);
+    $transactions = entity_load('ideal_transaction', array_keys($entities['ideal_transaction']));
+    foreach ($transactions as $transaction) {
+      $transaction->status = IDEAL_STATUS_UNKNOWN;
+      entity_save('ideal_transaction', $transaction);
+    }
+    if ($site_mail = variable_get('site_mail', NULL)) {
+      // Don't use drupal_mail_send(), becausing drupal_mail() logs errors and
+      // drupal_mail_send() doesn't.
+      drupal_mail('ideal', 'status_unknown', $site_mail, $language, array(
+        'transactions' => $transactions,
+      ));
+    }
+  }
+
+  // Check the status for open transactions from the last 24 hours.
+  $query = new EntityFieldQuery();
+  $entities = $query->entityCondition('entity_type', 'ideal_transaction')
+    ->propertyCondition('status', IDEAL_STATUS_OPEN)
+  // The transaction must have expired for at least an hour.
+    ->propertyCondition('expired', $time - 3600, '<')
+  // Statuses should never be requested after 24 hours after expiration.
+    ->propertyCondition('expired', $time - 86400, '>')
+  // A transaction's status may only be requested five times. The first time
+  // usually happens directly after the user has come back from his bank's
+  // iDEAL environment, so we only check every five hours here (which is four
+  // times in 23 hours).
+    ->propertyCondition('updated', $time - 18000, '<')
+    ->execute();
+  if ($entities) {
+    $transactions = entity_load('ideal_transaction', array_keys($entities['ideal_transaction']));
+    foreach ($transactions as $transaction) {
+      $transaction->statusUpdate();
+      entity_save('ideal_transaction', $transaction);
+    }
+  }
+}
+
+/**
+ * Implements form process callback for an ideal_transaction_amount element.
+ */
+function ideal_form_process_transaction_amount(array $element) {
+  $element['#type'] = 'textfield';
+  $element['#required'] = TRUE;
+  if ($element['#amount']) {
+    $element['#default_value'] = ideal_cents_to_human_readable($element['#amount']);
+  }
+  $description = NULL;
+  if ($element['#minimum_amount'] > 0) {
+    $description = t('The minimum amount is €!amount.', array(
+      '!amount' => ideal_cents_to_human_readable($element['#minimum_amount']),
+    ));
+  }
+  $element['#description'] = $description;
+  $element['#size'] = 16;
+  $element['#maxlength'] = 16;
+  $element['#field_prefix'] = '€';
+  $element += element_info('textfield');
+  $element['#element_validate'][] = 'ideal_form_validate_transaction_amount';
+
+  return $element;
+}
+
+/**
+ * Implements form validate callback for an ideal_transaction_amount element.
+ */
+function ideal_form_validate_transaction_amount(array $element, array &$form_state) {
+  $value = $element['#value'];
+
+  // Count the number of decimal marks.
+  $count_fragments = count(preg_split('#[.,]#', $value));
+
+  // Check for invalid characters.
+  if (preg_match('#[^\d.,]#', $value)) {
+    form_set_error('amount', t('The amount can only consist of decimals and one decimal mark.'));
+  }
+  // Check for multiple decimal marks.
+  elseif ($count_fragments > 2) {
+    form_set_error('amount', t('The amount can only have one decimal mark.'));
+  }
+  // Make sure that if there is a decimal mark, it is followed by two digits.
+  elseif ($count_fragments == 2 && !preg_match('#[.,]\d\d$#', $value)) {
+    form_set_error('amount', t('The decimal mark must be followed by two digits.'));
+  }
+  else {
+    // Convert the value to an amount in cents.
+    $amount = (int) ($count_fragments == 1 ? $value * 100 : str_replace(array('.', ','), '', $value));
+
+    // Confirm the amount lies within the allowed range.
+    $minimum_amount = max($element['#minimum_amount'], 0);
+    if ($amount < $minimum_amount) {
+      form_set_error('amount', t('The minimum amount is €!amount.', array(
+        '!amount' => ideal_cents_to_human_readable(max($element['#minimum_amount'], 1)),
+      )));
+    }
+    if ($amount > IDEAL_MAXIMUM_AMOUNT) {
+      form_set_error('amount', t('The maximum amount is €!amount.', array(
+        '!amount' => ideal_cents_to_human_readable(IDEAL_MAXIMUM_AMOUNT),
+      )));
+    }
+
+    // The value passed validation. Set the amount in cents as the value for
+    // further processing.
+    else {
+      form_set_value($element, $amount, $form_state);
+    }
+  }
+}
+
+/**
+ * Implements form validate callback for an issuer select list.
+ */
+function ideal_form_validate_issuer(array $element, array &$form_state, array $form) {
+  if (in_array($element['#value'], array('ideal_choose', 'ideal_choose_other'))) {
+    form_error($element, t('Choose your bank.'));
+  }
+}
+
+/**
+ * Convert an amount in cents to a human-readable format.
+ *
+ * @param $amount integer
+ *
+ * @return string
+ */
+function ideal_cents_to_human_readable($amount) {
+  $length = strlen($amount);
+  // Add leading zeroes.
+  if ($length < 3) {
+    $amount = str_repeat('0', 3 - $length) . $amount;
+    $length += 3 - $length;
+  }
+  $euros = substr($amount, 0, $length - 2);
+  $cents = substr($amount, $length - 2);
+
+  return t('!euros.!cents', array(
+    '!euros' => $euros,
+    '!cents' => $cents,
+  ));
+}
+
+/**
+ * Convert a transaction status to a human-readable title.
+ *
+ * @param $status string
+ *   One of the IDEAL_STATUS_... constants.
+ * @param $translate boolean
+ *   Whether to translate the status title.
+ *
+ * @return string
+ */
+function ideal_status_title($status, $translate = TRUE) {
+  $t = $translate ? 't' : 'ideal_return';
+  $statuses = array(
+    IDEAL_STATUS_OPEN => $t('Pending'),
+    IDEAL_STATUS_SUCCESS => $t('Accepted'),
+    IDEAL_STATUS_CANCELLED => $t('Cancelled'),
+    IDEAL_STATUS_EXPIRED => $t('Expired'),
+    IDEAL_STATUS_FAILURE => $t('Failed'),
+    IDEAL_STATUS_UNKNOWN => $t('Unknown'),
+  );
+
+  return $statuses[$status];
+}
+
+/**
+ * Return the first argument.
+ *
+ * @param $return mixed
+ *
+ * @return mixed
+ */
+function ideal_return($return) {
+  return $return;
+}

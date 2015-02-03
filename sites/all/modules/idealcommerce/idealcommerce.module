@@ -1,0 +1,166 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations and shared functions.
+ */
+
+/**
+ * Implements hook_commerce_payment_method_info().
+ */
+function idealcommerce_commerce_payment_method_info() {
+  foreach (entity_load('ideal_merchant') as $merchant) {
+    $payment_method['idealcommerce_' . $merchant->imid] = array(
+      'base' => 'idealcommerce',
+      'title' => t('iDEAL (@merchant_title)', array(
+        '@merchant_title' => $merchant->title,
+      )),
+      'display_title' => 'iDEAL',
+      'short_title' => 'iDEAL',
+      'active' => TRUE,
+      'offsite' => TRUE,
+    );
+  }
+
+  return $payment_method;
+}
+
+/**
+ * Implements hook_ideal_transaction_close().
+ */
+function idealcommerce_ideal_transaction_close(iDEALTransaction $ideal_transaction) {
+  if ($ideal_transaction->commerce_payment_transaction_id) {
+    // Update the Commerce Payment transaction with the new data.
+    $commerce_transaction = commerce_payment_transaction_load($ideal_transaction->commerce_payment_transaction_id);
+    $commerce_transaction->remote_id = $ideal_transaction->itid;
+    $commerce_transaction->remote_status = ideal_status_title($ideal_transaction->status, FALSE);
+    $statuses = array(
+      IDEAL_STATUS_OPEN => COMMERCE_PAYMENT_STATUS_PENDING,
+      IDEAL_STATUS_SUCCESS => COMMERCE_PAYMENT_STATUS_SUCCESS,
+      IDEAL_STATUS_FAILURE => COMMERCE_PAYMENT_STATUS_FAILURE,
+      IDEAL_STATUS_CANCELLED => COMMERCE_PAYMENT_STATUS_FAILURE,
+      IDEAL_STATUS_EXPIRED => COMMERCE_PAYMENT_STATUS_FAILURE,
+    );
+    $commerce_transaction->status = $statuses[$ideal_transaction->status];
+    commerce_payment_transaction_save($commerce_transaction);
+
+    // Update the order status.
+    $order = commerce_order_load($commerce_transaction->order_id);
+    if ($order->status == 'checkout_payment') {
+      // If the transaction we're updating now is the last transaction for the
+      // corresponding order, move the order away from the "Checkout: payment"
+      // step.
+      $query = new EntityFieldQuery;
+      $result = $query
+        ->entityCondition('entity_type', 'commerce_payment_transaction')
+        ->propertyCondition('order_id', $order->order_id)
+        ->propertyOrderBy('transaction_id', 'DESC')
+        ->range(0, 1)
+        ->execute();
+      $order_last_transaction_id = reset($result['commerce_payment_transaction'])->transaction_id;
+      if ($commerce_transaction->transaction_id == $order_last_transaction_id) {
+        if ($ideal_transaction->status == IDEAL_STATUS_SUCCESS) {
+          commerce_payment_redirect_pane_next_page($order);
+        }
+        else {
+          commerce_payment_redirect_pane_previous_page($order);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements CALLBACK_submit_form().
+ */
+function idealcommerce_submit_form($payment_method, $pane_values, $checkout_pane, $order) {
+  $form = array();
+  $merchant = entity_load_single('ideal_merchant', str_replace('idealcommerce_', '', $payment_method['method_id']));
+  if (!($issuers = $merchant->acquirer->issuers($merchant))) {
+    drupal_set_message(t('The list of available banks could not be retrieved.'), 'error');
+    $form['#access'] = FALSE;
+  }
+  $options = array(
+    'ideal_choose' => t('- Select -'),
+  );
+  if (isset($issuers['short'])) {
+    foreach ($issuers['short'] as $issuer_id => $issuer_name) {
+      $options[$issuer_id] = $issuer_name;
+    }
+  }
+  if (!empty($issuers['long'])) {
+    $options['ideal_choose_other'] = '---' . t('Other banks') . '---';
+    foreach ($issuers['long'] as $issuer_id => $issuer_name) {
+      $options[$issuer_id] = $issuer_name;
+    }
+  }
+  $form['issuer'] = array(
+    '#type' => 'select',
+    '#title' => t('Choose your bank'),
+    '#options' => $options,
+    '#required' => TRUE,
+    '#default_value' => 'ideal_choose',
+    '#element_validate' => array('ideal_form_validate_issuer'),
+  );
+
+  return $form;
+}
+
+/**
+ * Implements CALLBACK_submit_form_submit().
+ */
+function idealcommerce_submit_form_submit($payment_method, $pane_form, array $pane_values, $order, $charge) {
+  // Make absolutely sure the transaction amount is in euros.
+  if ($charge['currency_code'] != 'EUR') {
+    throw new Exception('iDEAL does not support other currencies than the euro');
+    return;
+  }
+
+  // Create Commerce Payment transaction.
+  $commerce_transaction = commerce_payment_transaction_new($payment_method['method_id'], $order->order_id);
+  $commerce_transaction->status = COMMERCE_PAYMENT_STATUS_PENDING;
+  $commerce_transaction->remote_status = ideal_status_title(IDEAL_STATUS_OPEN, FALSE);
+  $commerce_transaction->currency_code = 'EUR';
+  $commerce_transaction->amount = $charge['amount'];
+  $commerce_transaction->instance_id = $payment_method['instance_id'];
+  commerce_payment_transaction_save($commerce_transaction);
+
+  // Create iDEAL transaction.
+  $description = t('Order #!order_id', array(
+    '!order_id' => $order->order_id,
+    '@site_name' => variable_get('site_name', NULL),
+  ));
+  $transaction = new iDEALTransaction(array(
+    'amount' => $charge['amount'],
+    'merchant' => entity_load_single('ideal_merchant', str_replace('idealcommerce_', '', $payment_method['method_id'])),
+    'description' => $order->order_id,
+    'purchase_id' => $order->order_id,
+    'return_callback' => 'idealcommerce_return',
+    'commerce_payment_transaction_id' => $commerce_transaction->transaction_id,
+  ));
+  entity_save('ideal_transaction', $transaction);
+
+  $order->data['ideal_issuer_authentication_url'] = $transaction->execute($pane_values['issuer']);
+}
+
+/**
+ * Implements CALLBACK_redirect_form().
+ */
+function idealcommerce_redirect_form(array $form, array &$form_state, $order, array $payment_method) {
+  if ($order->data['ideal_issuer_authentication_url']) {
+    drupal_goto($order->data['ideal_issuer_authentication_url']);
+  }
+  drupal_goto('checkout/' . $order->order_id . '/payment/back/' . $order->data['payment_redirect_key']);
+}
+
+/**
+ * iDEALTransaction return callback.
+ *
+ * @param $transaction iDEALTransaction
+ *
+ * @return NULL
+ */
+function idealcommerce_return(iDEALTransaction $ideal_transaction) {
+  $order = commerce_order_load(commerce_payment_transaction_load($ideal_transaction->commerce_payment_transaction_id)->order_id);
+  drupal_goto(commerce_checkout_order_uri($order));
+}

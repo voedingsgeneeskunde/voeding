@@ -1,0 +1,159 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function idealdonation_menu() {
+  $items['idealdonation'] = array(
+    'title' => 'Donate via iDEAL',
+    'page callback' => 'idealdonation_form',
+    'access callback' => TRUE,
+  );
+  $items['idealdonation/success'] = array(
+    'title' => 'Your donation has been completed',
+    'page callback' => 'idealdonation_success',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['idealdonation/error'] = array(
+    'title' => 'Your donation was not completed',
+    'page callback' => 'idealdonation_error',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/services/idealdonation'] = array(
+    'title' => 'iDEAL Donation Form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealdonation_form_configuration'),
+    'access arguments' => array('administer idealdonation'),
+  );
+  $items['admin/config/services/idealdonation/configure'] = array(
+    'title' => 'Configure iDEAL Donation Form',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function idealdonation_permission() {
+  return array(
+    'administer idealdonation' => array(
+      'title' => t('Administer iDEAL Donation Form'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function idealdonation_block_info() {
+  $blocks['idealdonation'] = array(
+    'info' => t('Donate via iDEAL'),
+  );
+
+  return $blocks;
+}
+
+function idealdonation_block_view($delta = '') {
+  return array(
+    'subject' => t('Donate via iDEAL'),
+    'content' => idealdonation_form(),
+  );
+}
+
+/**
+ * Render the donation form.
+ *
+ * @return array
+ *  The form build array.
+ */
+function idealdonation_form() {
+  module_load_include('inc', 'ideal', '/includes/ideal.transaction');
+  $destination = $_GET['q'] != 'idealdonation' ? $_GET['q'] : NULL;
+  $description = t('Donation to @site_name.', array(
+    '@site_name' => variable_get('site_name', NULL),
+  ));
+  $transaction = new iDEALTransaction(array(
+    'merchant' => entity_load_single('ideal_merchant', variable_get('idealdonation_imid', variable_get('ideal_default_imid', 1))),
+    'description' => $description,
+    'purchase_id' => $description,
+    'return_callback' => 'idealdonation_return',
+  ));
+
+  $description = idealdonation_description();
+  $form = drupal_get_form('ideal_form_transaction', $transaction, check_markup($description['value'], $description['format']), variable_get('idealdonation_amount', 0));
+  $form['#contextual_links']['idealdonation'] = array('admin/config/services/idealdonation', array());
+
+  return $form;
+}
+
+/**
+ * Implements iDEALTransaction return callback.
+ *
+ * @return string
+ */
+function idealdonation_return(iDEALTransaction $transaction) {
+  switch ($transaction->status) {
+    case IDEAL_STATUS_SUCCESS:
+      return t('Thank you for making a donation to @site_name.', array(
+        '@site_name' => variable_get('site_name', NULL),
+      ));
+      break;
+    case IDEAL_STATUS_OPEN:
+      return t('The transaction is being processed by the bank.');
+      break;
+    default:
+      return t('Unfortunately the transaction was not completed.');
+  }
+}
+
+/**
+ * Implements form build callback: the global onfiguration form.
+ */
+function idealdonation_form_configuration(array $form, array &$form_state) {
+  $form = array();
+  $options = array();
+  foreach (entity_load('ideal_merchant') as $merchant) {
+    $options[$merchant->imid] = $merchant->title;
+  }
+  $form['idealdonation_imid'] = array(
+    '#type' => 'select',
+    '#title' => t('Merchant'),
+    '#required' => TRUE,
+    '#options' => $options,
+    '#default_value' => variable_get('idealdonation_imid', variable_get('ideal_default_imid', 1)),
+  );
+  $form['idealdonation_amount'] = array(
+    '#type' => 'ideal_transaction_amount',
+    '#title' => t('Minimum amount'),
+    '#default_value' => ideal_cents_to_human_readable(variable_get('idealdonation_amount', 0)),
+    '#editable' => TRUE,
+  );
+  $description = idealdonation_description();
+  $form['idealdonation_description'] = array(
+    '#type' => 'text_format',
+    '#title' => t('Description'),
+    '#default_value' => $description['value'],
+    '#format' => $description['format'],
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Return the transaction form description.
+ *
+ * @return string
+ */
+function idealdonation_description() {
+  return variable_get('idealdonation_description', array(
+    'value' => t('Make a donation to @site_name via iDEAL.', array(
+      '@site_name' => variable_get('site_name', NULL),
+    )),
+    'format' => NULL,
+  ));
+}

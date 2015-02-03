@@ -1,0 +1,256 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function idealui_menu() {
+  // Transaction overview.
+  $items['admin/reports/ideal'] = array(
+    'title' => 'iDEAL transactions',
+    'description' => 'Administer iDEAL',
+    'page callback' => 'idealui_transaction_list',
+    'access arguments' => array('view ideal transactions'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+  );
+
+  // Merchant configuration.
+  $items['admin/config/services/ideal'] = array(
+    'title' => 'iDEAL API',
+    'page callback' => 'idealui_merchant_list',
+    'access arguments' => array('configure ideal'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+  );
+  $items['admin/config/services/ideal/merchant'] = array(
+    'title' => 'Merchants',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/services/ideal/merchant/add'] = array(
+    'title' => 'Add merchant',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_merchant'),
+    'access arguments' => array('configure ideal'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 1,
+  );
+  $items['admin/config/services/ideal/merchant/edit/%idealui_wrap_entity'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_merchant', 6),
+    'access callback' => 'idealui_access_merchant',
+    'access arguments' => array(6, 5),
+    'title callback' => 'idealui_title',
+    'title arguments' => array(6),
+    'load arguments' => array('ideal_merchant'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/services/ideal/merchant/delete/%idealui_wrap_entity'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_merchant_delete', 6),
+    'access callback' => 'idealui_access_merchant',
+    'access arguments' => array(6, 5),
+    'title callback' => 'idealui_title',
+    'title arguments' => array(6),
+    'load arguments' => array('ideal_merchant'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/services/ideal/merchant/default/%idealui_wrap_entity'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_merchant_default', 6),
+    'access arguments' => array('configure ideal'),
+    'title callback' => 'idealui_title',
+    'title arguments' => array(6),
+    'load arguments' => array('ideal_merchant'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_CALLBACK,
+  );
+
+  // Acquirer configuration.
+  $items['admin/config/services/ideal/acquirer'] = array(
+    'title' => 'Acquirers',
+    'page callback' => 'idealui_acquirer_list',
+    'access arguments' => array('configure ideal'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['admin/config/services/ideal/acquirer/add'] = array(
+    'title' => 'Add acquirer',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_acquirer'),
+    'access arguments' => array('configure ideal'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 1,
+  );
+  $items['admin/config/services/ideal/acquirer/edit/%idealui_wrap_entity'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_acquirer', 6),
+    'access callback' => 'idealui_access_acquirer',
+    'access arguments' => array(6, 5),
+    'title callback' => 'idealui_title',
+    'title arguments' => array(6),
+    'load arguments' => array('ideal_acquirer'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/services/ideal/acquirer/delete/%idealui_wrap_entity'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_acquirer_delete', 6),
+    'access callback' => 'idealui_access_acquirer',
+    'access arguments' => array(6, 5),
+    'title callback' => 'idealui_title',
+    'title arguments' => array(6),
+    'load arguments' => array('ideal_acquirer'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_CALLBACK,
+  );
+
+  // General configuration.
+  $items['admin/config/services/ideal/global'] = array(
+    'title' => 'Global configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('idealui_form_global_configuration'),
+    'access arguments' => array('configure ideal'),
+    'file' => 'idealui.admin.inc',
+    'file path' => drupal_get_path('module', 'idealui') . '/includes',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function idealui_permission() {
+  return array(
+    'view ideal transactions' => array(
+      'title' => t('View iDEAL transactions'),
+    ),
+    'configure ideal' => array(
+      'title' => t('Configure iDEAL'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function idealui_theme($existing, $type, $theme, $path) {
+  return array(
+    'idealui_status_unknown' => array(
+      'variables' => array(
+        'transaction' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function idealui_mail_alter(&$message) {
+  if ($message['id'] == 'ideal_status_unknown') {
+    $message['body'][] = t('You can view these transactions at @idealui.', array(
+      '@idealui' => url('admin/reports/ideal', array(
+        'absolute' => TRUE,
+      )),
+    ));
+  }
+}
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function idealui_system_info_alter(&$info, $file, $type) {
+  if ($file->name == 'ideal' && $type == 'module') {
+    $info['configure'] = 'admin/config/services/ideal';
+  }
+}
+
+/**
+ * Wrapper for entity_load_single() to be used as a menu wildcard loader.
+ *
+ * @see entity_load_single()
+ */
+function idealui_wrap_entity_load($id, $entity_type) {
+  return entity_load_single($entity_type, $id);
+}
+
+/**
+ * Title callback for menu items.
+ *
+ * @param $entity mixed
+ *   Either an IDEALMerchant or iDEALAcquirer object.
+ *
+ * @return string
+ *   The entity's title.
+ */
+function idealui_title($entity) {
+  return $entity->title;
+}
+
+/**
+ * Merchant access callback for menu items
+ *
+ * @param $merchant iDEALMerchant
+ * @param $op string
+ *   The operation the user wants to perform on $merchant. Either 'edit' or
+ *   'delete'.
+ *
+ * @return
+ *   Whether the user has access to perform $op on $merchant.
+ */
+function idealui_access_merchant($merchant, $op) {
+  if (!user_access('configure_ideal')) {
+    return FALSE;
+  }
+  if ($merchant->locked) {
+    return FALSE;
+  }
+  if ($op == 'delete' && $merchant->imid == variable_get('ideal_default_imid', 1)) {
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Acquirer access callback for menu items
+ *
+ * @param $acquirer iDEALAcquirer
+ * @param $op string
+ *   The operation the user wants to perform on $acquirer. Either 'edit' or
+ *   'delete'.
+ *
+ * @return
+ *   Whether the user has access to perform $op on $merchant.
+ */
+function idealui_access_acquirer(iDEALAcquirer $acquirer, $op) {
+  if (!user_access('configure_ideal')) {
+    return FALSE;
+  }
+  if ($acquirer->locked) {
+    return FALSE;
+  }
+  if ($op == 'delete') {
+    foreach (entity_load('ideal_merchant') as $merchant) {
+      if ($merchant->acquirer->iaid == $acquirer->iaid) {
+        return FALSE;
+      }
+    }
+  }
+  return TRUE;
+}

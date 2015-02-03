@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Installation, uninstallation and update functions.
+ */
+
+/**
+ * Adds a text format to the iDEAL Donation Form description.
+ */
+function idealdonation_update_7100() {
+  $description = variable_get('idealdonation_description', NULL);
+  if (is_string($description)) {
+    variable_set('idealdonation_description', array(
+      'value' => $description,
+      'format' => NULL,
+    ));
+  }
+}

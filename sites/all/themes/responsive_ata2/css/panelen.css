@@ -1,0 +1,417 @@
+/* --- Panelen -Stylizer --- */
+
+.pane-node-title {
+	color: #a9cb61;
+	font-size: 1.5em;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	font-family: ATASerif, Georgia, serif;
+	font-style: italic;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	background-color: transparent;
+}
+
+.pane-plain-box-ata-cover,
+.pane-plain-box-ata-bericht,
+.pane-plain-box-ata-bericht-kader-boven,
+.pane-plain-box-ata-bericht-kader-onder,
+.pane-plain-box-ata-bericht-kaders,
+.pane-plain-box-ata-wit,
+.pane-plain-box-ata-bericht-kader-boven,
+.pane-plain-box-ata-bericht-kader-onder,
+.pane-plain-box-ata-bericht-kaders {
+	background: transparent;
+}
+
+.pane-plain-box-ata-grijs2,
+.pane-plain-box-ata-grijs1,
+.pane-plain-box-ata-geel,
+.pane-plain-box-ata-blauw,
+.pane-plain-box-ata-grijs3,
+.pane-plain-box-ata-grijs4,
+.pane-plain-box-ata-oranje,
+.pane-plain-box-ata-groen,
+.pane-plain-box-ata-rood,
+.pane-plain-box-ata-wit,
+.pane-plain-box-ata-referenties,
+.pane-plain-box-ata-video,
+.pane-plain-box-ata-cover,
+.pane-plain-box-ata-bericht,
+.pane-plain-box-ata-bericht-kader-boven,
+.pane-plain-box-ata-bericht-kader-onder,
+.pane-plain-box-ata-bericht-kaders,
+.pane-plain-box-ata-vorige-cover,
+.pane-plain-box-ata-border-boven,
+.pane-plain-box-ata-border-onder {
+	font-size: 0.875em;
+	line-height: 1.5;
+	padding-left: 0.5em;
+	padding-bottom: 0.5em;
+	padding-right: 0.5em;
+	padding-top: 0.5em;
+}
+
+.pane-plain-box-ata-menu {
+	font-size: 0.875em;
+	/*line-height: 1.5;*/
+	padding-left: 0.5em;
+	padding-bottom: 0;
+	padding-right: 0.5em;
+	padding-top: 0;
+	background: transparent;
+}
+
+.pane-plain-box-ata-bericht-kader-boven {
+	border-top: 1px dotted #BFB682;
+	background: transparent;
+}
+
+
+.pane-plain-box-ata-bericht-kader-onder {
+	border-bottom: 1px dotted #BFB682;
+	background: transparent;
+}
+
+.pane-plain-box-ata-bericht-kaders {
+	border: 1px dotted #BFB682;
+	background: transparent;
+}
+
+.pane-plain-box-ata-grijs2,
+.pane-plain-box-ata-grijs1,
+.pane-plain-box-ata-geel,
+.pane-plain-box-ata-blauw,
+.pane-plain-box-ata-grijs3,
+.pane-plain-box-ata-grijs4,
+.pane-plain-box-ata-oranje,
+.pane-plain-box-ata-groen,
+.pane-plain-box-ata-rood,
+.pane-plain-box-ata-video {
+  -khtml-border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+
+.pane-plain-box-ata-border-onder {
+	font-size: 0.875em;
+	line-height: 1.5;
+	padding-left: 1em;
+	padding-bottom: 0.5em;
+	padding-right: 0.5em;
+	padding-top: 0.5em;
+	border-bottom: dotted 1px #6a6763;
+	margin-bottom: 0.5em;
+	background-color: transparent;
+}
+
+.pane-plain-box_border-top,
+.pane-plain-box-ata-vorige-cover {
+	font-size: 0.875em;
+	line-height: 1.5;
+	padding-left: 1em;
+	padding-bottom: 0.5em;
+	padding-right: 0.5em;
+	padding-top: 0.5em;
+	border-top: dotted 1px #6a6763;
+	margin-bottom: 0.5em;
+	background: transparent;
+}
+
+.pane-plain-box-ata-wit h2,
+.pane-plain-box-ata-referenties h2,
+.pane-plain-box-ata-cover h2,
+.pane-plain-box-ata-vorige-cover {
+	background: transparent;
+}
+
+
+.pane-plain-box-ata-grijs2 h2,
+.pane-plain-box-ata-grijs1 h2,
+.pane-plain-box-ata-geel h2,
+.pane-plain-box-ata-blauw h2,
+.pane-plain-box-ata-grijs3 h2,
+.pane-plain-box-ata-grijs4 h2,
+.pane-plain-box-ata-oranje h2,
+.pane-plain-box-ata-groen h2,
+.pane-plain-box-ata-rood h2,
+.pane-plain-box-ata-wit h2,
+.pane-plain-box-ata-referenties h2,
+.pane-plain-box-ata-cover h2,
+.pane-plain-box-ata-vorige-cover {
+	-khtml-border-radius: 4px !important;
+	-moz-border-radius: 4px !important;
+	-webkit-border-radius: 4px !important;
+	border-radius: 4px !important;
+	padding: 0;
+}
+
+.pane-plain-box_border-onder h2 {
+	padding: 0;
+	border-bottom: dotted 1px #6a6763;
+}
+
+.pane-plain-box-ata-artikel-inhoud {
+	font-family: ATASerif, Georgia, serif;
+	font-size: 1em;
+	letter-spacing: 0;
+	color: #6a6763;
+	background: transparent;
+}
+
+.pane-plain-box-ata-artikel-kop {
+	
+	
+}
+.pane-plain-box-ata-artikel-onderkop {
+	font-size: 1.125em;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	color: #DC582B;
+	margin-bottom: 1em;
+	background: transparent;
+}
+.pane-plain-box-ata-artikel-intro {
+	font-size: 1em;
+	font-weight: 700;
+	font-family: ATASerif, Georgia, serif;
+	color: #6a6763;
+	margin-bottom: 2em;
+	/*letter-spacing: 0.1em;*/
+}
+
+.pane-plain-box-ata-referenties {
+	font-family: Ubuntu, sans-serif;
+	font-size: 0.75em;
+	border-top: dotted 1px #6a6763;
+	background: transparent;
+}
+
+.views-field-field-intro {
+	margin-bottom: 1em;
+	background: transparent;
+}
+.views-field-field-artikel {
+	margin-bottom: 1em;
+}
+
+.pane-plain-box-ata-cover img,
+.pane-plain-box-ata-vorige-cover img {
+	box-shadow:2px 2px 8px #bac3ba;
+}
+
+/* --- Partner BC2013 logo --- */
+.pane-plain-box-atabc2013-partner {
+	font-size: 0;
+	-khtml-border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	padding-left: 1em;
+	padding-bottom: 1em;
+	padding-right: 1em;
+	padding-top: 1em;
+	background-image: url(https://voedingsgeneeskunde.nl/sites/default/files/bc2013_partner_logo_80.png);
+	background-color: #f3f5f2;
+	background-repeat: no-repeat;
+	background-position: left 4px;
+  min-height: 80px; 
+	color: #f3f5f2;	
+}
+
+
+.view-id-tijdschrift_edities h1 {
+	font-family: ataserif, georgia, serif;
+	color: #A9CB61;
+	font-style: italic;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	font-size: 2em;
+}
+
+.pane-plain-box-ata-bericht {
+	border: 1 dotted #BFB682;
+	background-color: transparent;
+}
+
+.pane-plain-box-ata-bericht .links.inline {
+	color: #bfb682;
+}
+
+.pane-plain-box-ata-border-boven {
+  border-top: dotted 1px #6a6763;
+  -khtml-border-radius: 0 !important;
+	-moz-border-radius: 0 !important;
+	-webkit-border-radius: 0 !important;
+	border-radius: 0 !important; 
+	background: transparent; 
+}
+/*.pane-plain-box-ata-border-onder {
+  border-bottom: dotted 1px #6a6763;
+  
+  -khtml-border-radius: 0 !important;
+	-moz-border-radius: 0 !important;
+	-webkit-border-radius: 0 !important;
+	border-radius: 0 !important;  
+}*/
+/* --- Regio's --- */
+
+.region-plain-box-ata-grijs1-regio {
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	border-radius: 8px;
+	padding-left: 0.5em;
+	padding-bottom: 0.5em;
+	padding-right: 0.5em;
+	padding-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.region-plain-box-ata-grijs1-regio,
+.region-plain-box-ata-grijs2-regio,
+.region-plain-box-ata-grijs3-regio,
+.region-plain-box-ata-grijs4-regio
+ {
+	-khtml-border-radius: 8px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	border-radius: 8px;
+	padding: 0.5em;
+	margin: 0;
+}
+.region-plain-box-ata-border-links-regio
+ {
+	border-left: dotted 1px #6a6763; 
+	padding: 0.5em;
+	margin: 0;
+	background: transparent;
+}
+.region-plain-box-ata-border-rechts-regio
+ {
+	border-right: dotted 1px #6a6763; 
+	padding: 0.5em;
+	margin: 0;
+	background: transparent;
+}
+.region-plain-box-ata-border-boven-regio
+ {
+	border-top: dotted 1px #6a6763; 
+	padding: 0.5em;
+	margin: 0;
+	background: transparent;
+}
+.region-plain-box-ata-border-boven-regio h2 {
+	color: #DC582B;
+}
+
+
+/* --- Panelizer dingen --- */
+
+#panels-dnd-main div.panel-region {
+    background: none repeat scroll 0 0 #f3f5f2;
+    border: 1px dashed #e7e9e3;
+    padding: 0 0 0.5em;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+}
+.panel-portlet {
+  background: none repeat scroll 0 0 #FFFFFF;
+  border: 1px solid bac3ba;
+  padding: 0;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+panel-portlet .grabber {
+    background: url("../images/bg-shade-medium.png") repeat-x scroll 0 100% #bac3ba;
+    cursor: move;
+}
+.panel-portlet .grab-title {
+    background: none repeat scroll 0 0 #bac3ba;
+    border-color: #bac3ba;
+    color: #f3f5f2;
+    font-weight: bold;
+    height: 20px;
+    margin: 0 0 0.5em;
+    overflow: hidden;
+    text-shadow: 1px 1px 1px #bac3ba;
+    width: 100%;
+}
+div#panels-ipe-control-container {
+    background-color: #393838;
+    bottom: 0;
+    box-shadow: 0 4px 16px #6a6763;
+    display: none;
+    overflow: hidden;
+    padding: 0.5em 0;
+    position: fixed;
+    width: 100%;
+    z-index: 99999;
+}
+div.panels-ipe-pseudobutton-container, div.panels-ipe-control .form-submit {
+    background: -moz-linear-gradient(center bottom , #f3f5f2 0%, #fff 100%) repeat scroll 0 0 #6a6763;
+    border: 0 none;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    color: #70addf;
+    cursor: pointer;
+    display: inline-block;
+    font:300 12px/33px Ubuntu, "Open Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+    height: 32px;
+    margin: 0 10px;
+}
+div.panels-ipe-pseudobutton-container a.panels-ipe-startedit {
+  padding-left: 34px;
+  background: url(../images/icon-configure.png) no-repeat 10px 9px;
+}
+
+div.panels-ipe-pseudobutton-container a.panels-ipe-change-layout {
+  padding-left: 34px;
+  background: url(../images/icon-change-layout.png) no-repeat 10px 9px;
+}
+
+div.panels-ipe-pseudobutton-container a {
+   height: 33px;
+  padding: 0 0.8em;
+  display: inline-block;
+  color: #70addf;
+  text-decoration: none;
+}
+/* --- Collapsable panel --- */
+.ctools-collapsible-handle {
+		color: #DC582B;
+		font-size: 1em;
+}
+.ctools-collapsible-container{
+	border-top: 1px dotted #6a6763;
+	border-bottom: 1px dotted #6a6763;
+	padding-top: 0.5em;
+}
+.ctools-collapsible-content {
+	font-size: 0.67em;
+	font-family: Ubuntu, "Open Sans", "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+}
+
+/* --- Boekpanelen --- */
+
+.book-navigation .page-links {
+	border-top: 1px dotted #6a6763;
+	border-bottom: 1px dotted #6a6763;
+	font-size: 0.875em;
+}
+
+.book-navigation .page-previous{
+	width: 36%;
+	margin: 0;
+}
+
+.book-navigation .page-up {
+	width: 28%;
+	margin: 0;
+}
+.book-navigation .page-next {
+	width: 36%;
+	margin: 0;
+}

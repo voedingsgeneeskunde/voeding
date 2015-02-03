@@ -1,0 +1,42 @@
+name = Responsive ATA 2
+description = Theme voor ata.nl based on Responsive Bartik
+core = 7.x
+base theme = responsive_bartik
+
+stylesheets[all][] = css/layout.css
+stylesheets[all][] = css/responsive_ata2.css
+stylesheets[all][] = css/style.css
+stylesheets[all][] = css/colors.css
+stylesheets[all][] = css/modal.css
+stylesheets[all][] = css/panelen.css
+stylesheets[all][] = css/ui.css
+stylesheets[all][] = css/formulieren.css
+
+regions[header] = Header
+regions[help] = Help
+regions[page_top] = Page top
+regions[page_bottom] = Page bottom
+regions[highlighted] = Highlighted
+
+regions[featured] = Featured
+regions[content] = Content
+regions[sidebar_first] = Sidebar first
+regions[sidebar_second] = Sidebar second
+
+regions[triptych_first] = Triptych first
+regions[triptych_middle] = Triptych middle
+regions[triptych_last] = Triptych last
+
+regions[footer_firstcolumn] = Footer first column
+regions[footer_secondcolumn] = Footer second column
+regions[footer_thirdcolumn] = Footer third column
+regions[footer_fourthcolumn] = Footer fourth column
+regions[footer] = Footer
+
+breakpoints[mobile] = (min-width: 0px)
+breakpoints[narrow] = (min-width: 560px)
+breakpoints[wide] = (min-width: 851px)
+breakpoints[tv] = only screen and (min-width: 3456px)
+breakpoints[small] = (min-width: 0px)
+breakpoints[medium] = (min-width: 560px)
+breakpoints[large] = (min-width: 851px)
